@@ -68,6 +68,17 @@ public class TelaCadastrarPaciente extends JDialog{
 	}
 	
 	private void addPaciente() {
+		String cpf = txfCpf.getText().trim();
+
+		Paciente pacienteExistente = pacService.localizarPacientePorCpf(cpf);
+		if (pacienteExistente != null) {
+			JOptionPane.showMessageDialog(this, 
+				"Já existe um paciente cadastrado com o CPF: " + cpf, 
+				"CPF duplicado", 
+				JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+
 		Paciente p = new Paciente(0L, txfCpf.getText(), txfNome.getText());
 		pacService.adicionarPaciente(p);
 		JOptionPane.showMessageDialog(null, "Paciente cadastrado com sucesso");

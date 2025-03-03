@@ -20,6 +20,13 @@ public class PacienteService {
 		return daoPaciente.findByID(id);
 	}
 	
+	public Paciente localizarPacientePorCpf(String cpf) {
+		return daoPaciente.getAll()
+				  .stream()
+				  .filter(p -> p.getCpf().equals(cpf))
+				  .findFirst()
+				  .orElse(null);
+	}
 	
 	public void deletarPaciente(Paciente p) {
 		daoPaciente.delete(p);

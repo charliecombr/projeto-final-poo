@@ -33,7 +33,7 @@ public class TelaPrincipal extends JFrame{
 	
 	public TelaPrincipal(PacienteService pacService) {
 		this.pacService = pacService;
-		setTitle("Ger�ncia de Prontu�rios");
+		setTitle("Gerência de Prontu�rios");
 		setSize(480,360);
 		setLocationRelativeTo(null);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -45,6 +45,7 @@ public class TelaPrincipal extends JFrame{
 		menuItemAdicionarPaciente = new JMenuItem("Adicionar");
 		menuItemAdicionarPaciente.addActionListener(e -> new TelaCadastrarPaciente(pacService, this));
 		menuItemAtualizarPaciente = new JMenuItem("Atualizar");
+		menuItemAtualizarPaciente.addActionListener(e -> new TelaAtualizarPaciente(pacService, this));
 		menuItemExcluirPaciente = new JMenuItem("Excluir");
 		menuItemExcluirPaciente.addActionListener(e -> new TelaExcluirPaciente(pacService, this));
 		menuPaciente.add(menuItemAdicionarPaciente);

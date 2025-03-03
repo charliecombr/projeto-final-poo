@@ -66,7 +66,16 @@ public class PacienteDAO implements GenericDAO<Paciente, Long>{
 	@Override
 	public void update(Paciente obj) {
 		// TODO Auto-generated method stub
-		
+
+		try(PreparedStatement pstm = db.getConnection().prepareStatement("UPDATE PACIENTES SET cpf = ?, nome = ? WHERE id = ?;");){
+			pstm.setString(1, obj.getCpf());
+			pstm.setString(2, obj.getNome());
+			pstm.setLong(3, obj.getId());
+			pstm.execute();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	@Override

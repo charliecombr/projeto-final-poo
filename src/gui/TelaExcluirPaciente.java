@@ -31,12 +31,12 @@ public class TelaExcluirPaciente extends JDialog {
         setTitle("Tela de Excluir Paciente");    
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout());
-        JPanel painelForm = new JPanel();    
+        painelForm = new JPanel();    
         txfid = new JTextField(24);
         painelForm.add(new JLabel("ID: "));
         painelForm.add(txfid);    
         add(painelForm, BorderLayout.CENTER);
-        JPanel painelBotoes = new JPanel();    
+        painelBotoes = new JPanel();    
         btnExcluir = new JButton("Excluir");
         btnExcluir.addActionListener(e -> excluirPaciente());    
         btnSair = new JButton("Sair");
