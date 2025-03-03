@@ -21,7 +21,7 @@ DEFAULT CHARACTER SET = utf8;
 
 CREATE TABLE IF NOT EXISTS `prontuario`.`exames` (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `descricao` VARCHAR(45) NOT NULL,
+  `descricao` VARCHAR(200) NOT NULL,
   `data` VARCHAR(45) NOT NULL,
   `pacientes_id` INT(11) NOT NULL,
   PRIMARY KEY (`id`),
