@@ -59,7 +59,7 @@ Este repositório contém o projeto final da disciplina de Programação Orienta
 ## 👨‍💻 Autores
 
 - [Louiis04](https://github.com/Louiis04)
-- [KaueLui]((https://github.com/KaueLui))
+- [KaueLui](https://github.com/KaueLui)
 
 ## 📄 Licença
 
