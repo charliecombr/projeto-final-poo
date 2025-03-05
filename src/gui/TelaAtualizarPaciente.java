@@ -1,9 +1,8 @@
 package gui;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
+import java.awt.GridLayout;
+import java.sql.SQLException;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -16,172 +15,181 @@ import model.Paciente;
 import service.PacienteService;
 
 public class TelaAtualizarPaciente extends JDialog {
-    
-    private static final long serialVersionUID = 1L;
 
+    private static final long serialVersionUID = 1L;
+    
     private PacienteService pacService;
     private TelaPrincipal main;
-    private JPanel painelPesquisa;
     private JPanel painelForm;
     private JPanel painelBotoes;
     private JButton btnBuscar;
-    private JButton btnAtualizar;
+    private JButton btnSalvar;
+    private JButton btnLimpar;
     private JButton btnSair;
-    private JTextField txfid;
-    private JTextField txfcpf;
-    private JTextField txfnome;
+    private JLabel lblIdPaciente;
     private JLabel lblCpfAtual;
     private JLabel lblNomeAtual;
-    
+    private JLabel lblNovoCpf;
+    private JLabel lblNovoNome;
+    private JTextField txfIdPaciente;
+    private JTextField txfCpfAtual;
+    private JTextField txfNomeAtual;
+    private JTextField txfNovoCpf;
+    private JTextField txfNovoNome;
+    private Paciente paciente;
+
     public TelaAtualizarPaciente(PacienteService pacService, TelaPrincipal main) {
         this.pacService = pacService;
         this.main = main;
-        setSize(400, 300);
+        setSize(300, 200);
         setResizable(false);
-        setTitle("Tela de Atualizar Paciente");    
+        setTitle("Tela de Atualização de Paciente");
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout());
         
-        painelPesquisa = new JPanel();
-        painelPesquisa.setLayout(new BoxLayout(painelPesquisa, BoxLayout.X_AXIS));
-        painelPesquisa.add(new JLabel("ID do Paciente: "));
-        painelPesquisa.add(Box.createRigidArea(new Dimension(5, 0)));
-        txfid = new JTextField(10);
-        txfid.setMaximumSize(new Dimension(100, 25));
-        painelPesquisa.add(txfid);
-        painelPesquisa.add(Box.createRigidArea(new Dimension(5, 0)));
-        btnBuscar = new JButton("Buscar");
-        btnBuscar.addActionListener(e -> buscarPaciente());
-        painelPesquisa.add(btnBuscar);
-        painelPesquisa.add(Box.createHorizontalGlue());
-        add(painelPesquisa, BorderLayout.NORTH);
+        painelForm = new JPanel(new GridLayout(6, 2, 5, 5));
+        lblIdPaciente = new JLabel("ID do Paciente:");
+        txfIdPaciente = new JTextField(24);
+        lblCpfAtual = new JLabel("CPF Atual:");
+        txfCpfAtual = new JTextField(24);
+        txfCpfAtual.setEditable(false);
+        lblNomeAtual = new JLabel("Nome Atual:");
+        txfNomeAtual = new JTextField(24);
+        txfNomeAtual.setEditable(false);
+        lblNovoCpf = new JLabel("Novo CPF:");
+        txfNovoCpf = new JTextField(24);
+        lblNovoNome = new JLabel("Novo Nome:");
+        txfNovoNome = new JTextField(24);
         
-        painelForm = new JPanel();
-        painelForm.setLayout(new BoxLayout(painelForm, BoxLayout.Y_AXIS));
-        
-        JPanel panelCpfAtual = new JPanel();
-        panelCpfAtual.setLayout(new BoxLayout(panelCpfAtual, BoxLayout.X_AXIS));
-        panelCpfAtual.add(new JLabel("CPF Atual: "));
-        panelCpfAtual.add(Box.createRigidArea(new Dimension(10, 0)));
-        lblCpfAtual = new JLabel("");
-        panelCpfAtual.add(lblCpfAtual);
-        panelCpfAtual.add(Box.createHorizontalGlue());
-        painelForm.add(panelCpfAtual);
-        painelForm.add(Box.createRigidArea(new Dimension(0, 10)));
-        
-        JPanel panelNomeAtual = new JPanel();
-        panelNomeAtual.setLayout(new BoxLayout(panelNomeAtual, BoxLayout.X_AXIS));
-        panelNomeAtual.add(new JLabel("Nome Atual: "));
-        panelNomeAtual.add(Box.createRigidArea(new Dimension(10, 0)));
-        lblNomeAtual = new JLabel("");
-        panelNomeAtual.add(lblNomeAtual);
-        panelNomeAtual.add(Box.createHorizontalGlue());
-        painelForm.add(panelNomeAtual);
-        painelForm.add(Box.createRigidArea(new Dimension(0, 10)));
-        
-        JPanel panelNovoCpf = new JPanel();
-        panelNovoCpf.setLayout(new BoxLayout(panelNovoCpf, BoxLayout.X_AXIS));
-        panelNovoCpf.add(new JLabel("Novo CPF: "));
-        panelNovoCpf.add(Box.createRigidArea(new Dimension(10, 0)));
-        txfcpf = new JTextField(20);
-        txfcpf.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
-        panelNovoCpf.add(txfcpf);
-        painelForm.add(panelNovoCpf);
-        painelForm.add(Box.createRigidArea(new Dimension(0, 10)));
-        
-        JPanel panelNovoNome = new JPanel();
-        panelNovoNome.setLayout(new BoxLayout(panelNovoNome, BoxLayout.X_AXIS));
-        panelNovoNome.add(new JLabel("Novo Nome: "));
-        panelNovoNome.add(Box.createRigidArea(new Dimension(10, 0)));
-        txfnome = new JTextField(20);
-        txfnome.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
-        panelNovoNome.add(txfnome);
-        painelForm.add(panelNovoNome);
-        
-        txfcpf.setEnabled(false);
-        txfnome.setEnabled(false);
-        
+        painelForm.add(lblIdPaciente);
+        painelForm.add(txfIdPaciente);
+        painelForm.add(new JLabel(""));
+        painelForm.add(new JLabel(""));
+        painelForm.add(lblCpfAtual);
+        painelForm.add(txfCpfAtual);
+        painelForm.add(lblNomeAtual);
+        painelForm.add(txfNomeAtual);
+        painelForm.add(lblNovoCpf);
+        painelForm.add(txfNovoCpf);
+        painelForm.add(lblNovoNome);
+        painelForm.add(txfNovoNome);
         add(painelForm, BorderLayout.CENTER);
         
         painelBotoes = new JPanel();
-        painelBotoes.setLayout(new BoxLayout(painelBotoes, BoxLayout.X_AXIS));
-        painelBotoes.add(Box.createHorizontalGlue());
-        btnAtualizar = new JButton("Atualizar");
-        btnAtualizar.addActionListener(e -> atualizarPaciente());
-        btnAtualizar.setEnabled(false);
-        painelBotoes.add(btnAtualizar);
-        painelBotoes.add(Box.createRigidArea(new Dimension(10, 0)));
+        btnBuscar = new JButton("Buscar");
+        btnBuscar.addActionListener(e -> buscarPaciente());
+        btnSalvar = new JButton("Salvar");
+        btnSalvar.addActionListener(e -> atualizarPaciente());
+        btnSalvar.setEnabled(false);
+        btnLimpar = new JButton("Limpar");
+        btnLimpar.addActionListener(e -> limparCampos());
         btnSair = new JButton("Sair");
-        btnSair.addActionListener(e -> dispose());
+        btnSair.addActionListener(e -> fecharTela());
+        painelBotoes.add(btnBuscar);
+        painelBotoes.add(btnSalvar);
+        painelBotoes.add(btnLimpar);
         painelBotoes.add(btnSair);
-        painelBotoes.add(Box.createHorizontalGlue());
         add(painelBotoes, BorderLayout.SOUTH);
         
-        setLocationRelativeTo(null);
+        setModal(true);
         setVisible(true);
     }
     
+    private void fecharTela() {
+        this.dispose();
+    }
+    
+    private void limparCampos() {
+        txfIdPaciente.setText("");
+        txfCpfAtual.setText("");
+        txfNomeAtual.setText("");
+        txfNovoCpf.setText("");
+        txfNovoNome.setText("");
+        paciente = null;
+        btnSalvar.setEnabled(false);
+    }
+    
     private void buscarPaciente() {
+        String idStr = txfIdPaciente.getText().trim();
+        if (idStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, 
+                "Por favor, insira o ID do paciente.", 
+                "Campos vazios", 
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
         try {
-            long id = Long.parseLong(txfid.getText());
-            Paciente paciente = pacService.localizarPacientePorId(id);
-            
-            if (paciente != null) {
-                lblCpfAtual.setText(paciente.getCpf());
-                lblNomeAtual.setText(paciente.getNome());
-                
-                txfcpf.setText(paciente.getCpf());
-                txfnome.setText(paciente.getNome());
-                
-                txfcpf.setEnabled(true);
-                txfnome.setEnabled(true);
-                btnAtualizar.setEnabled(true);
-            } else {
-                JOptionPane.showMessageDialog(this, 
-                    "Paciente não encontrado com o ID: " + id,
-                    "Erro", 
-                    JOptionPane.ERROR_MESSAGE);
-            }
+            Long id = Long.parseLong(idStr);
+            paciente = pacService.localizarPacientePorId(id);
+            txfCpfAtual.setText(paciente.getCpf());
+            txfNomeAtual.setText(paciente.getNome());
+            txfNovoCpf.setText(paciente.getCpf());
+            txfNovoNome.setText(paciente.getNome());
+            btnSalvar.setEnabled(true);
+            JOptionPane.showMessageDialog(this, "Paciente encontrado com sucesso!");
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, 
-                "ID inválido. Por favor, insira um número válido.",
+                "ID inválido. Por favor, insira um número válido.", 
                 "Erro", 
                 JOptionPane.ERROR_MESSAGE);
-        } catch (Exception e) {
+        } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, 
-                "Erro ao buscar paciente: " + e.getMessage(),
+                "Erro ao buscar paciente: Falha no banco de dados - " + e.getMessage(), 
                 "Erro", 
                 JOptionPane.ERROR_MESSAGE);
+        } catch (exception.PacienteNaoEncontradoException e) {
+            JOptionPane.showMessageDialog(this, 
+                e.getMessage(), 
+                "Erro", 
+                JOptionPane.ERROR_MESSAGE);
+            limparCampos();
         }
     }
     
     private void atualizarPaciente() {
-    	String cpf = txfcpf.getText().trim();
+        if (paciente == null) {
+            JOptionPane.showMessageDialog(this, 
+                "Nenhum paciente selecionado para atualização. Busque um paciente primeiro.", 
+                "Erro", 
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
-		Paciente pacienteExistente = pacService.localizarPacientePorCpf(cpf);
-		if (pacienteExistente != null) {
-			JOptionPane.showMessageDialog(this, 
-				"Já existe um paciente cadastrado com o CPF: " + cpf, 
-				"CPF duplicado", 
-				JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-    	try {
-            long id = Long.parseLong(txfid.getText());
-            Paciente p = pacService.localizarPacientePorId(id);
-            
-            if (p != null) {
-                p.setCpf(txfcpf.getText());
-                p.setNome(txfnome.getText());
-                
-                pacService.atualizarPaciente(p);
-                JOptionPane.showMessageDialog(this, "Paciente atualizado com sucesso!");
-                dispose();
+        String novoCpf = txfNovoCpf.getText().trim();
+        String novoNome = txfNovoNome.getText().trim();
+
+        if (novoCpf.isEmpty() || novoNome.isEmpty()) {
+            JOptionPane.showMessageDialog(this, 
+                "Por favor, preencha todos os campos de novo CPF e novo nome.", 
+                "Campos vazios", 
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        try {
+            paciente.setCpf(novoCpf);
+            paciente.setNome(novoNome);
+            pacService.atualizarPaciente(paciente);
+            JOptionPane.showMessageDialog(this, "Paciente atualizado com sucesso!");
+            limparCampos();
+            if (main != null) {
                 main.loadTablePaciente();
             }
+            fecharTela();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, 
+                "Erro ao atualizar paciente: Falha no banco de dados - " + e.getMessage(), 
+                "Erro", 
+                JOptionPane.ERROR_MESSAGE);
+        } catch (IllegalArgumentException e) {
+            JOptionPane.showMessageDialog(this, 
+                "Erro ao atualizar paciente: " + e.getMessage(), 
+                "Erro", 
+                JOptionPane.ERROR_MESSAGE);
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, 
-                "Erro ao atualizar paciente: " + e.getMessage(),
+                "Erro inesperado ao atualizar paciente: " + e.getMessage(), 
                 "Erro", 
                 JOptionPane.ERROR_MESSAGE);
         }

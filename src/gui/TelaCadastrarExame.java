@@ -1,6 +1,10 @@
 package gui;
 
 import java.awt.BorderLayout;
+import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -12,13 +16,12 @@ import model.Exame;
 import model.Paciente;
 import service.ExameService;
 import service.PacienteService;
-import java.util.Date;
 
 public class TelaCadastrarExame extends JDialog {
-    
+
     private static final long serialVersionUID = 1L;
     
-    private ExameService exaService;
+    private ExameService exameServ;
     private PacienteService pacService;
     private TelaPrincipal main;
     private JPanel painelForm;
@@ -26,96 +29,115 @@ public class TelaCadastrarExame extends JDialog {
     private JButton btnSalvar;
     private JButton btnLimpar;
     private JButton btnSair;
-    private JLabel lblDesc;
-    private JTextField txfDesc;
-    private JLabel lblCpf;
-    private JTextField txfCpf;
+    private JLabel lblDescricao;
+    private JLabel lblCpfPaciente;
+    private JTextField txfDescricao;
+    private JTextField txfCpfPaciente;
 
-    public TelaCadastrarExame(ExameService exaService, PacienteService pacService, TelaPrincipal main) {
-        this.exaService = exaService;
+    public TelaCadastrarExame(ExameService exameServ, PacienteService pacService, TelaPrincipal main) {
+        this.exameServ = exameServ;
         this.pacService = pacService;
         this.main = main;
-        setSize(360, 250);
+        setSize(360, 150);
         setResizable(false);
         setTitle("Tela de Cadastro de Exame");
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout());
         
         painelForm = new JPanel();
-        
-        lblDesc = new JLabel("Descrição do Exame: ");
-        txfDesc = new JTextField(25);
-        painelForm.add(lblDesc);
-        painelForm.add(txfDesc);
-        
-        lblCpf = new JLabel("CPF do Paciente:      ");
-        txfCpf = new JTextField(25);
-        painelForm.add(lblCpf);
-        painelForm.add(txfCpf);
-        
+        lblDescricao = new JLabel("Descrição do Exame:");
+        txfDescricao = new JTextField(15);
+        lblCpfPaciente = new JLabel("CPF do Paciente:");
+        txfCpfPaciente = new JTextField(15);
+        painelForm.add(lblDescricao);
+        painelForm.add(txfDescricao);
+        painelForm.add(lblCpfPaciente);
+        painelForm.add(txfCpfPaciente);
         add(painelForm, BorderLayout.CENTER);
         
         painelBotoes = new JPanel();
         btnSair = new JButton("Sair");
         btnSair.addActionListener(e -> fecharTela());
-        
         btnLimpar = new JButton("Limpar");
         btnLimpar.addActionListener(e -> limparCampos());
-        
         btnSalvar = new JButton("Salvar");
         btnSalvar.addActionListener(e -> addExame());
-        
         painelBotoes.add(btnSalvar);
         painelBotoes.add(btnLimpar);
         painelBotoes.add(btnSair);
-        
         add(painelBotoes, BorderLayout.SOUTH);
+        
         setModal(true);
         setVisible(true);
     }
     
     private void fecharTela() {
-        this.hide();
+        this.dispose();
     }
     
     private void limparCampos() {
-        txfDesc.setText("");
-        txfCpf.setText("");
+        txfDescricao.setText("");
+        txfCpfPaciente.setText("");
     }
 
     private void addExame() {
-        String desc = txfDesc.getText().trim();
-        String cpf = txfCpf.getText().trim();
-        
-        if (desc.isEmpty() || cpf.isEmpty()) {
+        String descricao = txfDescricao.getText().trim();
+        String cpf = txfCpfPaciente.getText().trim();
+
+        if (descricao.isEmpty() || cpf.isEmpty()) {
             JOptionPane.showMessageDialog(this, 
                 "Por favor, preencha todos os campos.", 
                 "Campos vazios", 
                 JOptionPane.WARNING_MESSAGE);
             return;
         }
-        
-        Paciente paciente = pacService.localizarPacientePorCpf(cpf);
-        
-        if (paciente == null) {
+
+        try {
+            Paciente paciente = pacService.localizarPacientePorCpf(cpf);
+            if (paciente == null) {
+                throw new exception.PacienteNaoEncontradoException("Paciente com CPF " + cpf + " não encontrado");
+            }
+
+            // Define a data atual automaticamente
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+            String dataAtual = sdf.format(new Date());
+
+            if (exameServ.verificarExameExistente(paciente.getId(), descricao, new Date())) { // Usa Date para verificar
+                JOptionPane.showMessageDialog(this, 
+                    "Já existe um exame com essa descrição para o paciente na data atual.", 
+                    "Erro", 
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            Exame exame = new Exame(null, descricao, dataAtual, paciente.getId());
+            exameServ.adicionarExame(exame);
+            JOptionPane.showMessageDialog(this, "Exame cadastrado com sucesso!");
+            limparCampos();
+            if (main != null) {
+                main.loadTableExame();
+            }
+            fecharTela();
+        } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, 
-                "Paciente com CPF " + cpf + " não encontrado.", 
-                "Paciente não encontrado", 
+                "Erro ao cadastrar exame: Falha no banco de dados - " + e.getMessage(), 
+                "Erro", 
                 JOptionPane.ERROR_MESSAGE);
-            return;
+        } catch (exception.PacienteNaoEncontradoException e) {
+            JOptionPane.showMessageDialog(this, 
+                "Paciente não encontrado com o CPF fornecido: " + e.getMessage(), 
+                "Erro", 
+                JOptionPane.ERROR_MESSAGE);
+        } catch (IllegalArgumentException e) {
+            JOptionPane.showMessageDialog(this, 
+                "Erro ao cadastrar exame: " + e.getMessage(), 
+                "Erro", 
+                JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, 
+                "Erro inesperado ao cadastrar exame: " + e.getMessage(), 
+                "Erro", 
+                JOptionPane.ERROR_MESSAGE);
         }
-        
-        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy");
-        String dataStr = sdf.format(new Date());
-        
-        Exame novoExame = new Exame(0L, desc, dataStr, paciente.getId());
-        
-        exaService.adicionarExame(novoExame);
-        
-        JOptionPane.showMessageDialog(this, "Exame cadastrado com sucesso!");
-        
-        limparCampos();
-        
-         // main.loadTableExame();
     }
 }
