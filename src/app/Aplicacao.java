@@ -4,12 +4,12 @@ import dao.ExameDAO;
 import dao.PacienteDAO;
 import db.DatabaseConnection;
 import db.MySQLDatabaseConnection;
+import exception.DatabaseConnectionException;
 import gui.TelaPrincipal;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import service.ExameService;
 import service.PacienteService;
-import exception.DatabaseConnectionException;
 
 public class Aplicacao {
 

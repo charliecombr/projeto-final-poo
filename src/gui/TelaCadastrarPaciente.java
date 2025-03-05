@@ -40,8 +40,8 @@ public class TelaCadastrarPaciente extends JDialog{
 		painelForm = new JPanel();
 		lblNome = new JLabel("Nome: ");
 		lblCpf = new JLabel("CPF: ");
-		txfNome = new JTextField(24);
-		txfCpf = new JTextField(24);
+		txfNome = new JTextField(28);
+		txfCpf = new JTextField(28);
 		painelForm.add(lblNome);
 		painelForm.add(txfNome);
 		painelForm.add(lblCpf);
@@ -51,6 +51,7 @@ public class TelaCadastrarPaciente extends JDialog{
 		btnSair = new JButton("Sair");
 		btnSair.addActionListener(e -> fecharTela());
 		btnLimpar = new JButton("Limpar");
+		btnLimpar.addActionListener(e -> limparCampos());
 		btnSalvar = new JButton("Salvar");
 		btnSalvar.addActionListener(e -> addPaciente());
 		painelBotoes.add(btnSalvar);

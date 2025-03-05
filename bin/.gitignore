@@ -3,3 +3,6 @@
 /model/
 /service/
 /exception/
+/app/
+/db/
+/util/
