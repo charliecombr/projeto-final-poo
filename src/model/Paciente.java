@@ -9,7 +9,6 @@ public class Paciente {
 	private Long id;
 	private String cpf;
 	private String nome;
-	
 	private List<Exame> exames = new ArrayList<>();
 
 	public Paciente(Long id, String cpf, String nome) {
@@ -27,32 +26,44 @@ public class Paciente {
 	}
 
 	public void setId(Long id) {
-		this.id = id;
-	}
+        if (id != null && id < 0) {
+            throw new IllegalArgumentException("O ID do paciente não pode ser negativo");
+        }
+        this.id = id;
+    }
 
 	public String getCpf() {
 		return cpf;
 	}
 
 	public void setCpf(String cpf) {
-		this.cpf = cpf;
-	}
+        if (cpf == null || cpf.trim().isEmpty()) {
+            throw new IllegalArgumentException("O CPF do paciente não pode ser nulo ou vazio");
+        }
+        this.cpf = cpf;
+    }
 
 	public String getNome() {
 		return nome;
 	}
 
 	public void setNome(String nome) {
-		this.nome = nome;
-	}
+        if (nome == null || nome.trim().isEmpty()) {
+            throw new IllegalArgumentException("O nome do paciente não pode ser nulo ou vazio");
+        }
+        this.nome = nome;
+    }
 
 	public List<Exame> getExames() {
 		return exames;
 	}
 
 	public void setExames(List<Exame> exames) {
-		this.exames = exames;
-	}
+        if (exames == null) {
+            throw new IllegalArgumentException("A lista de exames não pode ser nula");
+        }
+        this.exames = exames;
+    }
 
 	@Override
 	public int hashCode() {

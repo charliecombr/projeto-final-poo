@@ -1,7 +1,7 @@
 package model;
 
 public class Exame {
-    private long id;
+    private Long id;
     private String descricao;
     private String dataExame;
     private long pacienteId;
@@ -11,7 +11,7 @@ public class Exame {
     }
     
     // Construtor com parâmetros
-    public Exame(long id, String descricao, String dataExame, long pacienteId) {
+    public Exame(Long id, String descricao, String dataExame, Long pacienteId) {
         this.id = id;
         this.descricao = descricao;
         this.dataExame = dataExame;
@@ -19,11 +19,14 @@ public class Exame {
     }
     
     // Getters e Setters
-    public long getId() {
+    public Long getId() {
         return id;
     }
     
-    public void setId(long id) {
+    public void setId(Long id) {
+        if (id != null && id < 0) {
+            throw new IllegalArgumentException("O ID do exame não pode ser negativo");
+        }
         this.id = id;
     }
     
@@ -32,6 +35,9 @@ public class Exame {
     }
     
     public void setDescricao(String descricao) {
+        if (descricao == null || descricao.trim().isEmpty()) {
+            throw new IllegalArgumentException("A descrição do exame não pode ser nula ou vazia");
+        }
         this.descricao = descricao;
     }
     
@@ -40,6 +46,9 @@ public class Exame {
     }
     
     public void setDataExame(String dataExame) {
+        if (dataExame == null || dataExame.trim().isEmpty()) {
+            throw new IllegalArgumentException("A data do exame não pode ser nula ou vazia");
+        }
         this.dataExame = dataExame;
     }
     
@@ -48,6 +57,9 @@ public class Exame {
     }
     
     public void setPacienteId(long pacienteId) {
+        if (pacienteId < 0) {
+            throw new IllegalArgumentException("O ID do paciente não pode ser negativo");
+        }
         this.pacienteId = pacienteId;
     }
     

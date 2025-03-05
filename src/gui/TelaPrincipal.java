@@ -1,11 +1,13 @@
 package gui;
 
 import java.awt.BorderLayout;
+import java.sql.SQLException;
 import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
@@ -16,10 +18,6 @@ import service.ExameService;
 import service.PacienteService;
 
 public class TelaPrincipal extends JFrame{
-
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
     
     private JMenuBar barraMenu;
@@ -103,12 +101,20 @@ public class TelaPrincipal extends JFrame{
     }
     
     protected void loadTablePaciente() {
-        List<Paciente> itens = pacService.getPacientes();
-        tablePacientes.setModel(new TabelaPacienteModel(itens));
+        try {
+            List<Paciente> itens = pacService.getPacientes();
+            tablePacientes.setModel(new TabelaPacienteModel(itens));
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Erro ao carregar pacientes: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+        }
     }
     
-	protected void loadTableExame() {
-       List<Exame> exames = exameService.getExames();
-       tableExames.setModel(new TabelaExameModel(exames));
+    protected void loadTableExame() {
+        try {
+            List<Exame> exames = exameService.getExames();
+            tableExames.setModel(new TabelaExameModel(exames));
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Erro ao carregar exames: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+        }
     }
 }

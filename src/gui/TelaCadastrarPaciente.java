@@ -1,6 +1,8 @@
 package gui;
 
 import java.awt.BorderLayout;
+import java.sql.SQLException;
+
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -11,10 +13,6 @@ import model.Paciente;
 import service.PacienteService;
 
 public class TelaCadastrarPaciente extends JDialog{
-
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	
 	private PacienteService pacService;
@@ -67,24 +65,48 @@ public class TelaCadastrarPaciente extends JDialog{
 		this.hide();
 	}
 	
+	private void limparCampos() {
+        txfNome.setText("");
+        txfCpf.setText("");
+    }
+	
 	private void addPaciente() {
-		String cpf = txfCpf.getText().trim();
+        String cpf = txfCpf.getText().trim();
+        String nome = txfNome.getText().trim();
 
-		Paciente pacienteExistente = pacService.localizarPacientePorCpf(cpf);
-		if (pacienteExistente != null) {
-			JOptionPane.showMessageDialog(this, 
-				"Já existe um paciente cadastrado com o CPF: " + cpf, 
-				"CPF duplicado", 
-				JOptionPane.ERROR_MESSAGE);
-			return;
-		}
+        if (cpf.isEmpty() || nome.isEmpty()) {
+            JOptionPane.showMessageDialog(this, 
+                "Por favor, preencha todos os campos.", 
+                "Campos vazios", 
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
 
-		Paciente p = new Paciente(0L, txfCpf.getText(), txfNome.getText());
-		pacService.adicionarPaciente(p);
-		JOptionPane.showMessageDialog(null, "Paciente cadastrado com sucesso");
-		txfCpf.setText("");
-		txfNome.setText("");
-		main.loadTablePaciente();
-	}
+        try {
+            Paciente p = new Paciente(0L, cpf, nome);
+            pacService.adicionarPaciente(p);
+            JOptionPane.showMessageDialog(this, "Paciente cadastrado com sucesso!");
+            limparCampos();
+            if (main != null) {
+                main.loadTablePaciente();
+            }
+            fecharTela();
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, 
+                "Erro ao cadastrar paciente: Falha no banco de dados - " + e.getMessage(), 
+                "Erro", 
+                JOptionPane.ERROR_MESSAGE);
+        } catch (IllegalArgumentException e) {
+            JOptionPane.showMessageDialog(this, 
+                "Erro ao cadastrar paciente: " + e.getMessage(), 
+                "Erro", 
+                JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, 
+                "Erro inesperado ao cadastrar paciente: " + e.getMessage(), 
+                "Erro", 
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
 	
 }
