@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-import exception.ConfiguracaoInvalidaException;
 import exception.DatabaseConnectionException;
 import util.LoadParameter;
 
@@ -17,7 +16,7 @@ public class MySQLDatabaseConnection implements DatabaseConnection {
     private final String DBPORT;
     private final String DBUSER;
 
-    public MySQLDatabaseConnection() throws DatabaseConnectionException, ConfiguracaoInvalidaException {
+    public MySQLDatabaseConnection() throws DatabaseConnectionException {
         DBNAME = LoadParameter.getValor("DBNAME");
         DBADDRESS = LoadParameter.getValor("DBADDRESS");
         DBPASSWORD = LoadParameter.getValor("DBPASSWORD");

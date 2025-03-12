@@ -2,6 +2,7 @@ package service;
 
 import dao.ExameDAO;
 import exception.ExameNaoEncontradoException;
+import exception.PacienteExameVinculadoException;
 
 import java.sql.SQLException;
 import java.util.Date;
@@ -96,7 +97,7 @@ public class ExameService {
         daoExame.limparLista();
     }
     
-    public void excluirExame(Exame exame) throws SQLException, IllegalArgumentException {
+    public void excluirExame(Exame exame) throws SQLException, IllegalArgumentException, PacienteExameVinculadoException {
         if (exame == null) {
             throw new IllegalArgumentException("O exame não pode ser nulo");
         }

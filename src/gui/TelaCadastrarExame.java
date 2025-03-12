@@ -4,8 +4,10 @@ import java.awt.BorderLayout;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -30,9 +32,9 @@ public class TelaCadastrarExame extends JDialog {
     private JButton btnLimpar;
     private JButton btnSair;
     private JLabel lblDescricao;
-    private JLabel lblCpfPaciente;
+    private JLabel lblPaciente;
     private JTextField txfDescricao;
-    private JTextField txfCpfPaciente;
+    private JComboBox<PacienteItem> cmbPacientes;
 
     public TelaCadastrarExame(ExameService exameServ, PacienteService pacService, TelaPrincipal main) {
         this.exameServ = exameServ;
@@ -46,13 +48,16 @@ public class TelaCadastrarExame extends JDialog {
         
         painelForm = new JPanel();
         lblDescricao = new JLabel("Descrição do Exame:");
-        txfDescricao = new JTextField(15);
-        lblCpfPaciente = new JLabel("CPF do Paciente:");
-        txfCpfPaciente = new JTextField(15);
+        txfDescricao = new JTextField(17);
+        lblPaciente = new JLabel("Paciente:");
+        cmbPacientes = new JComboBox<>();
+        
+        carregarPacientes();
+        
         painelForm.add(lblDescricao);
         painelForm.add(txfDescricao);
-        painelForm.add(lblCpfPaciente);
-        painelForm.add(txfCpfPaciente);
+        painelForm.add(lblPaciente);
+        painelForm.add(cmbPacientes);
         add(painelForm, BorderLayout.CENTER);
         
         painelBotoes = new JPanel();
@@ -71,20 +76,44 @@ public class TelaCadastrarExame extends JDialog {
         setVisible(true);
     }
     
+    private void carregarPacientes() {
+        cmbPacientes.removeAllItems();
+        try {
+            List<Paciente> pacientes = pacService.getPacientes();
+            if (pacientes.isEmpty()) {
+                JOptionPane.showMessageDialog(this, 
+                    "Não há pacientes cadastrados no sistema.", 
+                    "Aviso", 
+                    JOptionPane.WARNING_MESSAGE);
+            } else {
+                for (Paciente paciente : pacientes) {
+                    cmbPacientes.addItem(new PacienteItem(paciente));
+                }
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, 
+                "Erro ao carregar lista de pacientes: " + e.getMessage(), 
+                "Erro", 
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
     private void fecharTela() {
         this.dispose();
     }
     
     private void limparCampos() {
         txfDescricao.setText("");
-        txfCpfPaciente.setText("");
+        if (cmbPacientes.getItemCount() > 0) {
+            cmbPacientes.setSelectedIndex(0);
+        }
     }
 
     private void addExame() {
         String descricao = txfDescricao.getText().trim();
-        String cpf = txfCpfPaciente.getText().trim();
+        PacienteItem pacienteItem = (PacienteItem) cmbPacientes.getSelectedItem();
 
-        if (descricao.isEmpty() || cpf.isEmpty()) {
+        if (descricao.isEmpty() || pacienteItem == null) {
             JOptionPane.showMessageDialog(this, 
                 "Por favor, preencha todos os campos.", 
                 "Campos vazios", 
@@ -93,16 +122,12 @@ public class TelaCadastrarExame extends JDialog {
         }
 
         try {
-            Paciente paciente = pacService.localizarPacientePorCpf(cpf);
-            if (paciente == null) {
-                throw new exception.PacienteNaoEncontradoException("Paciente com CPF " + cpf + " não encontrado");
-            }
+            Paciente paciente = pacienteItem.getPaciente();
 
-            // Define a data atual automaticamente
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
             String dataAtual = sdf.format(new Date());
 
-            if (exameServ.verificarExameExistente(paciente.getId(), descricao, new Date())) { // Usa Date para verificar
+            if (exameServ.verificarExameExistente(paciente.getId(), descricao, new Date())) {
                 JOptionPane.showMessageDialog(this, 
                     "Já existe um exame com essa descrição para o paciente na data atual.", 
                     "Erro", 
@@ -123,11 +148,6 @@ public class TelaCadastrarExame extends JDialog {
                 "Erro ao cadastrar exame: Falha no banco de dados - " + e.getMessage(), 
                 "Erro", 
                 JOptionPane.ERROR_MESSAGE);
-        } catch (exception.PacienteNaoEncontradoException e) {
-            JOptionPane.showMessageDialog(this, 
-                "Paciente não encontrado com o CPF fornecido: " + e.getMessage(), 
-                "Erro", 
-                JOptionPane.ERROR_MESSAGE);
         } catch (IllegalArgumentException e) {
             JOptionPane.showMessageDialog(this, 
                 "Erro ao cadastrar exame: " + e.getMessage(), 
@@ -138,6 +158,24 @@ public class TelaCadastrarExame extends JDialog {
                 "Erro inesperado ao cadastrar exame: " + e.getMessage(), 
                 "Erro", 
                 JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    // Classe auxiliar para representar pacientes no ComboBox
+    private class PacienteItem {
+        private Paciente paciente;
+        
+        public PacienteItem(Paciente paciente) {
+            this.paciente = paciente;
+        }
+        
+        public Paciente getPaciente() {
+            return paciente;
+        }
+        
+        @Override
+        public String toString() {
+            return paciente.getNome() + " (CPF: " + paciente.getCpf() + ")";
         }
     }
 }

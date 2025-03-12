@@ -2,7 +2,7 @@ package gui;
 
 import java.awt.BorderLayout;
 import java.sql.SQLException;
-
+import java.util.InputMismatchException;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -63,7 +63,7 @@ public class TelaCadastrarPaciente extends JDialog{
 	}
 	
 	private void fecharTela() {
-		this.hide();
+		this.dispose();
 	}
 	
 	private void limparCampos() {
@@ -83,7 +83,18 @@ public class TelaCadastrarPaciente extends JDialog{
             return;
         }
 
+		
+
         try {
+
+			String cpfSemFormatacao = cpf.replaceAll("[.-]", "");
+
+			for (int i = 0; i < cpfSemFormatacao.length(); i++) {
+				if (!Character.isDigit(cpfSemFormatacao.charAt(i))) {
+					throw new InputMismatchException("");
+				}
+			}
+
             Paciente p = new Paciente(0L, cpf, nome);
             pacService.adicionarPaciente(p);
             JOptionPane.showMessageDialog(this, "Paciente cadastrado com sucesso!");
@@ -97,17 +108,22 @@ public class TelaCadastrarPaciente extends JDialog{
                 "Erro ao cadastrar paciente: Falha no banco de dados - " + e.getMessage(), 
                 "Erro", 
                 JOptionPane.ERROR_MESSAGE);
-        } catch (IllegalArgumentException e) {
-            JOptionPane.showMessageDialog(this, 
-                "Erro ao cadastrar paciente: " + e.getMessage(), 
-                "Erro", 
-                JOptionPane.ERROR_MESSAGE);
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, 
-                "Erro inesperado ao cadastrar paciente: " + e.getMessage(), 
-                "Erro", 
-                JOptionPane.ERROR_MESSAGE);
-        }
+		} catch (IllegalArgumentException e) {
+			JOptionPane.showMessageDialog(this, 
+				"Erro ao cadastrar paciente: " + e.getMessage(), 
+				"Erro", 
+				JOptionPane.ERROR_MESSAGE);
+		} catch (InputMismatchException e) {
+			JOptionPane.showMessageDialog(this,
+					"Erro, cpf não pode conter letras:" + e.getMessage(),
+					"Erro",
+					JOptionPane.ERROR_MESSAGE);
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(this, 
+				"Erro inesperado ao cadastrar paciente: " + e.getMessage(), 
+				"Erro", 
+				JOptionPane.ERROR_MESSAGE);
+		}
     }
 	
 }

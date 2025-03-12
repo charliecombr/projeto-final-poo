@@ -6,11 +6,9 @@ public class Exame {
     private String dataExame;
     private long pacienteId;
     
-    // Construtor padrão
     public Exame() {
     }
     
-    // Construtor com parâmetros
     public Exame(Long id, String descricao, String dataExame, Long pacienteId) {
         this.id = id;
         this.descricao = descricao;
@@ -18,7 +16,6 @@ public class Exame {
         this.pacienteId = pacienteId;
     }
     
-    // Getters e Setters
     public Long getId() {
         return id;
     }

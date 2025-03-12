@@ -3,8 +3,11 @@ package gui;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.sql.SQLException;
+import java.util.InputMismatchException;
+import java.util.List;
 
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -22,16 +25,15 @@ public class TelaAtualizarPaciente extends JDialog {
     private TelaPrincipal main;
     private JPanel painelForm;
     private JPanel painelBotoes;
-    private JButton btnBuscar;
     private JButton btnSalvar;
     private JButton btnLimpar;
     private JButton btnSair;
-    private JLabel lblIdPaciente;
+    private JLabel lblPaciente;
     private JLabel lblCpfAtual;
     private JLabel lblNomeAtual;
     private JLabel lblNovoCpf;
     private JLabel lblNovoNome;
-    private JTextField txfIdPaciente;
+    private JComboBox<PacienteItem> cmbPacientes;
     private JTextField txfCpfAtual;
     private JTextField txfNomeAtual;
     private JTextField txfNovoCpf;
@@ -48,8 +50,10 @@ public class TelaAtualizarPaciente extends JDialog {
         setLayout(new BorderLayout());
         
         painelForm = new JPanel(new GridLayout(6, 2, 5, 5));
-        lblIdPaciente = new JLabel("ID do Paciente:");
-        txfIdPaciente = new JTextField(24);
+        lblPaciente = new JLabel("Selecione o Paciente:");
+        cmbPacientes = new JComboBox<>();
+        carregarPacientes();
+        
         lblCpfAtual = new JLabel("CPF Atual:");
         txfCpfAtual = new JTextField(24);
         txfCpfAtual.setEditable(false);
@@ -61,8 +65,8 @@ public class TelaAtualizarPaciente extends JDialog {
         lblNovoNome = new JLabel("Novo Nome:");
         txfNovoNome = new JTextField(24);
         
-        painelForm.add(lblIdPaciente);
-        painelForm.add(txfIdPaciente);
+        painelForm.add(lblPaciente);
+        painelForm.add(cmbPacientes);
         painelForm.add(new JLabel(""));
         painelForm.add(new JLabel(""));
         painelForm.add(lblCpfAtual);
@@ -75,9 +79,10 @@ public class TelaAtualizarPaciente extends JDialog {
         painelForm.add(txfNovoNome);
         add(painelForm, BorderLayout.CENTER);
         
+        // Add action listener to populate fields when a patient is selected
+        cmbPacientes.addActionListener(e -> exibirDadosPaciente());
+        
         painelBotoes = new JPanel();
-        btnBuscar = new JButton("Buscar");
-        btnBuscar.addActionListener(e -> buscarPaciente());
         btnSalvar = new JButton("Salvar");
         btnSalvar.addActionListener(e -> atualizarPaciente());
         btnSalvar.setEnabled(false);
@@ -85,7 +90,6 @@ public class TelaAtualizarPaciente extends JDialog {
         btnLimpar.addActionListener(e -> limparCampos());
         btnSair = new JButton("Sair");
         btnSair.addActionListener(e -> fecharTela());
-        painelBotoes.add(btnBuscar);
         painelBotoes.add(btnSalvar);
         painelBotoes.add(btnLimpar);
         painelBotoes.add(btnSair);
@@ -95,12 +99,48 @@ public class TelaAtualizarPaciente extends JDialog {
         setVisible(true);
     }
     
+    private void carregarPacientes() {
+        cmbPacientes.removeAllItems();
+        try {
+            List<Paciente> pacientes = pacService.getPacientes();
+            if (pacientes.isEmpty()) {
+                JOptionPane.showMessageDialog(this, 
+                    "Não há pacientes cadastrados no sistema.", 
+                    "Aviso", 
+                    JOptionPane.WARNING_MESSAGE);
+            } else {
+                for (Paciente paciente : pacientes) {
+                    cmbPacientes.addItem(new PacienteItem(paciente));
+                }
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, 
+                "Erro ao carregar lista de pacientes: " + e.getMessage(), 
+                "Erro", 
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void exibirDadosPaciente() {
+        PacienteItem pacienteItem = (PacienteItem) cmbPacientes.getSelectedItem();
+        if (pacienteItem != null) {
+            paciente = pacienteItem.getPaciente();
+            txfCpfAtual.setText(paciente.getCpf());
+            txfNomeAtual.setText(paciente.getNome());
+            txfNovoCpf.setText(paciente.getCpf());
+            txfNovoNome.setText(paciente.getNome());
+            btnSalvar.setEnabled(true);
+        }
+    }
+    
     private void fecharTela() {
         this.dispose();
     }
     
     private void limparCampos() {
-        txfIdPaciente.setText("");
+        if (cmbPacientes.getItemCount() > 0) {
+            cmbPacientes.setSelectedIndex(0);
+        }
         txfCpfAtual.setText("");
         txfNomeAtual.setText("");
         txfNovoCpf.setText("");
@@ -109,48 +149,10 @@ public class TelaAtualizarPaciente extends JDialog {
         btnSalvar.setEnabled(false);
     }
     
-    private void buscarPaciente() {
-        String idStr = txfIdPaciente.getText().trim();
-        if (idStr.isEmpty()) {
-            JOptionPane.showMessageDialog(this, 
-                "Por favor, insira o ID do paciente.", 
-                "Campos vazios", 
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        try {
-            Long id = Long.parseLong(idStr);
-            paciente = pacService.localizarPacientePorId(id);
-            txfCpfAtual.setText(paciente.getCpf());
-            txfNomeAtual.setText(paciente.getNome());
-            txfNovoCpf.setText(paciente.getCpf());
-            txfNovoNome.setText(paciente.getNome());
-            btnSalvar.setEnabled(true);
-            JOptionPane.showMessageDialog(this, "Paciente encontrado com sucesso!");
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, 
-                "ID inválido. Por favor, insira um número válido.", 
-                "Erro", 
-                JOptionPane.ERROR_MESSAGE);
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, 
-                "Erro ao buscar paciente: Falha no banco de dados - " + e.getMessage(), 
-                "Erro", 
-                JOptionPane.ERROR_MESSAGE);
-        } catch (exception.PacienteNaoEncontradoException e) {
-            JOptionPane.showMessageDialog(this, 
-                e.getMessage(), 
-                "Erro", 
-                JOptionPane.ERROR_MESSAGE);
-            limparCampos();
-        }
-    }
-    
     private void atualizarPaciente() {
         if (paciente == null) {
             JOptionPane.showMessageDialog(this, 
-                "Nenhum paciente selecionado para atualização. Busque um paciente primeiro.", 
+                "Nenhum paciente selecionado para atualização.", 
                 "Erro", 
                 JOptionPane.ERROR_MESSAGE);
             return;
@@ -168,6 +170,15 @@ public class TelaAtualizarPaciente extends JDialog {
         }
 
         try {
+        	
+        	String cpfSemFormatacao = novoCpf.replaceAll("[.-]", "");
+
+			for (int i = 0; i < cpfSemFormatacao.length(); i++) {
+				if (!Character.isDigit(cpfSemFormatacao.charAt(i))) {
+					throw new InputMismatchException("");
+				}
+			}
+        	
             paciente.setCpf(novoCpf);
             paciente.setNome(novoNome);
             pacService.atualizarPaciente(paciente);
@@ -187,11 +198,33 @@ public class TelaAtualizarPaciente extends JDialog {
                 "Erro ao atualizar paciente: " + e.getMessage(), 
                 "Erro", 
                 JOptionPane.ERROR_MESSAGE);
-        } catch (Exception e) {
+        } catch (InputMismatchException e) {
+			JOptionPane.showMessageDialog(this,
+					"Erro, cpf não pode conter letras:" + e.getMessage(),
+					"Erro",
+					JOptionPane.ERROR_MESSAGE);
+		} catch (Exception e) {
             JOptionPane.showMessageDialog(this, 
                 "Erro inesperado ao atualizar paciente: " + e.getMessage(), 
                 "Erro", 
                 JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private class PacienteItem {
+        private Paciente paciente;
+        
+        public PacienteItem(Paciente paciente) {
+            this.paciente = paciente;
+        }
+        
+        public Paciente getPaciente() {
+            return paciente;
+        }
+        
+        @Override
+        public String toString() {
+            return paciente.getNome() + " (ID: " + paciente.getId() + ", CPF: " + paciente.getCpf() + ")";
         }
     }
 }

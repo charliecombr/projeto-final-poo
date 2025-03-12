@@ -1,16 +1,15 @@
 package gui;
 
+import exception.PacienteExameVinculadoException;
+import exception.PacienteNaoEncontradoException;
 import java.awt.BorderLayout;
 import java.sql.SQLException;
-
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-
-import exception.PacienteNaoEncontradoException;
 import model.Paciente;
 import service.PacienteService;
 
@@ -44,9 +43,9 @@ public class TelaExcluirPaciente extends JDialog {
         
         painelForm = new JPanel();
         lblIdPaciente = new JLabel("ID do Paciente:");
-        txfIdPaciente = new JTextField(24);
+        txfIdPaciente = new JTextField(26);
         lblCpf = new JLabel("CPF:");
-        txfCpf = new JTextField(30);
+        txfCpf = new JTextField(31);
         txfCpf.setEditable(false); // Campo apenas para visualização
         lblNome = new JLabel("Nome:");
         txfNome = new JTextField(30);
@@ -138,6 +137,13 @@ public class TelaExcluirPaciente extends JDialog {
                     main.loadTablePaciente();
                 }
                 fecharTela();
+                
+            } 
+            catch (PacienteExameVinculadoException e) {
+                JOptionPane.showMessageDialog(this, 
+                    "Paciente possui exame vinculado. Apague o exame primeiro.", 
+                    "Erro", 
+                    JOptionPane.ERROR_MESSAGE);
             } catch (SQLException e) {
                 JOptionPane.showMessageDialog(this, 
                     "Erro ao excluir paciente: Falha no banco de dados - " + e.getMessage(), 
