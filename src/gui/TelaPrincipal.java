@@ -11,7 +11,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
-
 import model.Exame;
 import model.Paciente;
 import service.ExameService;

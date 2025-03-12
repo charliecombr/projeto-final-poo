@@ -17,7 +17,7 @@ public class MySQLDatabaseConnection implements DatabaseConnection {
     private final String DBUSER;
 
     public MySQLDatabaseConnection() throws DatabaseConnectionException {
-        DBNAME = LoadParameter.getValor("DBNAME");
+    	DBNAME = LoadParameter.getValor("DBNAME");
         DBADDRESS = LoadParameter.getValor("DBADDRESS");
         DBPASSWORD = LoadParameter.getValor("DBPASSWORD");
         DBPORT = LoadParameter.getValor("DBPORT");

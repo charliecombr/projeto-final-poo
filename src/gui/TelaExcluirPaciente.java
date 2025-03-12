@@ -1,6 +1,5 @@
 package gui;
 
-import exception.PacienteExameVinculadoException;
 import exception.PacienteNaoEncontradoException;
 import java.awt.BorderLayout;
 import java.sql.SQLException;
@@ -138,12 +137,6 @@ public class TelaExcluirPaciente extends JDialog {
                 }
                 fecharTela();
                 
-            } 
-            catch (PacienteExameVinculadoException e) {
-                JOptionPane.showMessageDialog(this, 
-                    "Paciente possui exame vinculado. Apague o exame primeiro.", 
-                    "Erro", 
-                    JOptionPane.ERROR_MESSAGE);
             } catch (SQLException e) {
                 JOptionPane.showMessageDialog(this, 
                     "Erro ao excluir paciente: Falha no banco de dados - " + e.getMessage(), 
