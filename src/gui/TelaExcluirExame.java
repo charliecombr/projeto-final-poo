@@ -156,7 +156,7 @@ public class TelaExcluirExame extends JDialog {
                 "Confirmação", 
                 JOptionPane.YES_NO_OPTION);
             if (escolha == JOptionPane.YES_OPTION) {
-                exameServ.excluirExame(exameAtual);
+                exameServ.removerExame(exameAtual.getId());
                 JOptionPane.showMessageDialog(this, "Exame excluído com sucesso!");
                 txfIdExame.setText(""); // Limpa o campo após exclusão
                 limparCamposResultado();

@@ -1,11 +1,11 @@
 package gui;
 
+import exception.ValidarCpfException;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.sql.SQLException;
 import java.util.InputMismatchException;
 import java.util.List;
-
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -13,7 +13,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-
 import model.Paciente;
 import service.PacienteService;
 
@@ -150,66 +149,86 @@ public class TelaAtualizarPaciente extends JDialog {
     }
     
     private void atualizarPaciente() {
-        if (paciente == null) {
-            JOptionPane.showMessageDialog(this, 
-                "Nenhum paciente selecionado para atualização.", 
-                "Erro", 
-                JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        String novoCpf = txfNovoCpf.getText().trim();
-        String novoNome = txfNovoNome.getText().trim();
-
-        if (novoCpf.isEmpty() || novoNome.isEmpty()) {
-            JOptionPane.showMessageDialog(this, 
-                "Por favor, preencha todos os campos de novo CPF e novo nome.", 
-                "Campos vazios", 
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        try {
-        	
-        	String cpfSemFormatacao = novoCpf.replaceAll("[.-]", "");
-
-			for (int i = 0; i < cpfSemFormatacao.length(); i++) {
-				if (!Character.isDigit(cpfSemFormatacao.charAt(i))) {
-					throw new InputMismatchException("");
-				}
-			}
-        	
-            paciente.setCpf(novoCpf);
-            paciente.setNome(novoNome);
-            pacService.atualizarPaciente(paciente);
-            JOptionPane.showMessageDialog(this, "Paciente atualizado com sucesso!");
-            limparCampos();
-            if (main != null) {
-                main.loadTablePaciente();
-            }
-            fecharTela();
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, 
-                "Erro ao atualizar paciente: Falha no banco de dados - " + e.getMessage(), 
-                "Erro", 
-                JOptionPane.ERROR_MESSAGE);
-        } catch (IllegalArgumentException e) {
-            JOptionPane.showMessageDialog(this, 
-                "Erro ao atualizar paciente: " + e.getMessage(), 
-                "Erro", 
-                JOptionPane.ERROR_MESSAGE);
-        } catch (InputMismatchException e) {
-			JOptionPane.showMessageDialog(this,
-					"Erro, cpf não pode conter letras:" + e.getMessage(),
-					"Erro",
-					JOptionPane.ERROR_MESSAGE);
-		} catch (Exception e) {
-            JOptionPane.showMessageDialog(this, 
-                "Erro inesperado ao atualizar paciente: " + e.getMessage(), 
-                "Erro", 
-                JOptionPane.ERROR_MESSAGE);
-        }
+    if (paciente == null) {
+        JOptionPane.showMessageDialog(this, 
+            "Nenhum paciente selecionado para atualização.", 
+            "Erro", 
+            JOptionPane.ERROR_MESSAGE);
+        return;
     }
+
+    String novoCpf = txfNovoCpf.getText().trim();
+    String novoNome = txfNovoNome.getText().trim();
+
+    if (novoCpf.isEmpty() || novoNome.isEmpty()) {
+        JOptionPane.showMessageDialog(this, 
+            "Por favor, preencha todos os campos de novo CPF e novo nome.", 
+            "Campos vazios", 
+            JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+
+    try {
+        // Remover formatação do CPF e verificar se contém apenas dígitos
+        String cpfSemFormatacao = novoCpf.replaceAll("[.-]", "");
+
+        for (int i = 0; i < cpfSemFormatacao.length(); i++) {
+            if (!Character.isDigit(cpfSemFormatacao.charAt(i))) {
+                throw new InputMismatchException("CPF deve conter apenas números");
+            }
+        }
+        
+        // Verificar se o CPF mudou e se ele já existe para outro paciente
+        if (!cpfSemFormatacao.equals(paciente.getCpf())) {
+            try {
+                Paciente pacienteExistente = pacService.localizarPacientePorCpf(cpfSemFormatacao);
+                // Se encontrou um paciente com esse CPF e não é o paciente atual, lança exceção
+                if (pacienteExistente != null && !pacienteExistente.getId().equals(paciente.getId())) {
+                    throw new ValidarCpfException("CPF já cadastrado para outro paciente");
+                }
+            } catch (exception.PacienteNaoEncontradoException e) {
+                // CPF não encontrado, o que significa que podemos usá-lo
+                // Podemos continuar com a atualização
+            }
+        }
+        
+        // Atualizar os dados do paciente
+        paciente.setCpf(cpfSemFormatacao);
+        paciente.setNome(novoNome);
+        pacService.atualizarPaciente(paciente);
+        JOptionPane.showMessageDialog(this, "Paciente atualizado com sucesso!");
+        limparCampos();
+        if (main != null) {
+            main.loadTablePaciente();
+        }
+        fecharTela();
+    } catch (SQLException e) {
+        JOptionPane.showMessageDialog(this, 
+            "Erro ao atualizar paciente: Falha no banco de dados - " + e.getMessage(), 
+            "Erro", 
+            JOptionPane.ERROR_MESSAGE);
+    } catch (ValidarCpfException e) {
+        JOptionPane.showMessageDialog(this, 
+            "Erro de validação de CPF: " + e.getMessage(), 
+            "Erro", 
+            JOptionPane.ERROR_MESSAGE);
+    } catch (IllegalArgumentException e) {
+        JOptionPane.showMessageDialog(this, 
+            "Erro ao atualizar paciente: " + e.getMessage(), 
+            "Erro", 
+            JOptionPane.ERROR_MESSAGE);
+    } catch (InputMismatchException e) {
+        JOptionPane.showMessageDialog(this,
+            "Erro, CPF não pode conter letras: " + e.getMessage(),
+            "Erro",
+            JOptionPane.ERROR_MESSAGE);
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(this, 
+            "Erro inesperado ao atualizar paciente: " + e.getMessage(), 
+            "Erro", 
+            JOptionPane.ERROR_MESSAGE);
+    }
+}
     
     private class PacienteItem {
         private Paciente paciente;

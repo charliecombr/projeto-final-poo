@@ -1,13 +1,12 @@
 package service;
 
-import dao.ExameDAO;
 import dao.GenericDAO;
 import exception.PacienteExameVinculadoException;
 import exception.PacienteNaoEncontradoException;
+import exception.ValidarCpfException;
 import java.sql.SQLException;
 import java.util.InputMismatchException;
 import java.util.List;
-import model.Exame;
 import model.Paciente;
 
 public class PacienteService {
@@ -50,7 +49,7 @@ public class PacienteService {
                 .orElseThrow(() -> new PacienteNaoEncontradoException("Paciente com CPF " + cpf + " não encontrado"));
     }
 	
-	public void deletarPaciente(Paciente p) throws SQLException, IllegalArgumentException {
+	public void deletarPaciente(Paciente p) throws SQLException, IllegalArgumentException, PacienteExameVinculadoException {
         if (p == null) {
             throw new IllegalArgumentException("O paciente não pode ser nulo");
         }
@@ -61,37 +60,10 @@ public class PacienteService {
         return daoPaciente.getAll();
     }
 	
-	public void atualizarPaciente(Paciente p) throws SQLException, IllegalArgumentException {
+	public void atualizarPaciente(Paciente p) throws SQLException, IllegalArgumentException, ValidarCpfException {
         if (p == null || p.getId() == null) {
             throw new IllegalArgumentException("O paciente ou seu ID não pode ser nulo");
         }
         daoPaciente.update(p);
-    }
-	
-	public void excluir(Paciente paciente) throws SQLException, PacienteExameVinculadoException {
-        if (paciente == null) {
-            throw new IllegalArgumentException("O paciente não pode ser nulo");
-        }
-    
-        try {
-            // Verificar se o paciente possui exames vinculados - Isso deve acontecer ANTES de tentar excluir
-            ExameService exameService = new ExameService(new ExameDAO()); 
-            List<Exame> examesDoPaciente = exameService.getExamesPorPaciente(paciente.getId());
-            
-            if (!examesDoPaciente.isEmpty()) {
-                throw new PacienteExameVinculadoException("Paciente possui exame vinculado. Apague o exame primeiro.");
-            }
-            
-            // Se não tiver exames vinculados, prossegue com a exclusão
-            daoPaciente.delete(paciente);
-        } catch (PacienteExameVinculadoException e) {
-            // Propaga a exceção específica
-            throw e;
-        } catch (SQLException e) {
-            if (e.getMessage().toLowerCase().matches(".*(foreign key|constraint|integrity|reference).*")) {
-                throw new PacienteExameVinculadoException("Paciente possui exame vinculado. Apague o exame primeiro.");
-            }
-            throw e;
-        }
     }
 }

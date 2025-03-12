@@ -1,5 +1,6 @@
 package gui;
 
+import exception.ValidarCpfException;
 import java.awt.BorderLayout;
 import java.sql.SQLException;
 import java.util.InputMismatchException;
@@ -66,64 +67,103 @@ public class TelaCadastrarPaciente extends JDialog{
 		this.dispose();
 	}
 	
-	private void limparCampos() {
+    private void limparCampos() {
         txfNome.setText("");
         txfCpf.setText("");
     }
+    
+    private boolean validarCPF(String cpf) throws ValidarCpfException, SQLException {
+		if (cpf.length() != 11) {
+			throw new ValidarCpfException("CPF deve ter 11 dígitos");
+		}
+		
+		try {
+			Paciente pacienteExistente = pacService.localizarPacientePorCpf(cpf);
+			if (pacienteExistente != null) {
+				throw new ValidarCpfException("CPF já cadastrado para outro paciente");
+			}
+		} catch (exception.PacienteNaoEncontradoException e) {
+			return true;
+		}
 	
-	private void addPaciente() {
-        String cpf = txfCpf.getText().trim();
-        String nome = txfNome.getText().trim();
+		return true;
+	}
+    
+    private void addPaciente() {
+    String cpf = txfCpf.getText().trim();
+    String nome = txfNome.getText().trim();
 
-        if (cpf.isEmpty() || nome.isEmpty()) {
-            JOptionPane.showMessageDialog(this, 
-                "Por favor, preencha todos os campos.", 
-                "Campos vazios", 
-                JOptionPane.WARNING_MESSAGE);
-            return;
+    if (cpf.isEmpty() || nome.isEmpty()) {
+        JOptionPane.showMessageDialog(this, 
+            "Por favor, preencha todos os campos.", 
+            "Campos vazios", 
+            JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+
+    try {
+        String cpfSemFormatacao = cpf.replaceAll("[.-]", "");
+
+        for (int i = 0; i < cpfSemFormatacao.length(); i++) {
+            if (!Character.isDigit(cpfSemFormatacao.charAt(i))) {
+                throw new InputMismatchException("CPF deve conter apenas números");
+            }
+        }
+        
+        // Validar o CPF (usando a exceção ValidarCpfException)
+        if (!validarCPF(cpfSemFormatacao)) {
+            throw new ValidarCpfException("CPF inválido");
+        }
+        
+        // Verificar se o CPF já existe no banco
+        try {
+            Paciente pacienteExistente = pacService.localizarPacientePorCpf(cpfSemFormatacao);
+            if (pacienteExistente != null) {
+                JOptionPane.showMessageDialog(this, 
+                    "Já existe um paciente cadastrado com este CPF.", 
+                    "CPF Duplicado", 
+                    JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+        } catch (exception.PacienteNaoEncontradoException e) {
+            // CPF não encontrado, podemos continuar com o cadastro
         }
 
-		
-
-        try {
-
-			String cpfSemFormatacao = cpf.replaceAll("[.-]", "");
-
-			for (int i = 0; i < cpfSemFormatacao.length(); i++) {
-				if (!Character.isDigit(cpfSemFormatacao.charAt(i))) {
-					throw new InputMismatchException("");
-				}
-			}
-
-            Paciente p = new Paciente(0L, cpf, nome);
-            pacService.adicionarPaciente(p);
-            JOptionPane.showMessageDialog(this, "Paciente cadastrado com sucesso!");
-            limparCampos();
-            if (main != null) {
-                main.loadTablePaciente();
-            }
-            fecharTela();
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, 
-                "Erro ao cadastrar paciente: Falha no banco de dados - " + e.getMessage(), 
-                "Erro", 
-                JOptionPane.ERROR_MESSAGE);
-		} catch (IllegalArgumentException e) {
-			JOptionPane.showMessageDialog(this, 
-				"Erro ao cadastrar paciente: " + e.getMessage(), 
-				"Erro", 
-				JOptionPane.ERROR_MESSAGE);
-		} catch (InputMismatchException e) {
-			JOptionPane.showMessageDialog(this,
-					"Erro, cpf não pode conter letras:" + e.getMessage(),
-					"Erro",
-					JOptionPane.ERROR_MESSAGE);
-		} catch (Exception e) {
-			JOptionPane.showMessageDialog(this, 
-				"Erro inesperado ao cadastrar paciente: " + e.getMessage(), 
-				"Erro", 
-				JOptionPane.ERROR_MESSAGE);
-		}
+        // Criar e adicionar o novo paciente
+        Paciente p = new Paciente(0L, cpfSemFormatacao, nome);
+        pacService.adicionarPaciente(p);
+        JOptionPane.showMessageDialog(this, "Paciente cadastrado com sucesso!");
+        limparCampos();
+        if (main != null) {
+            main.loadTablePaciente();
+        }
+        fecharTela();
+    } catch (SQLException e) {
+        JOptionPane.showMessageDialog(this, 
+            "Erro ao cadastrar paciente: Falha no banco de dados - " + e.getMessage(), 
+            "Erro", 
+            JOptionPane.ERROR_MESSAGE);
+    } catch (ValidarCpfException e) {
+        JOptionPane.showMessageDialog(this, 
+            "Erro de validação de CPF: " + e.getMessage(), 
+            "Erro", 
+            JOptionPane.ERROR_MESSAGE);
+    } catch (IllegalArgumentException e) {
+        JOptionPane.showMessageDialog(this, 
+            "Erro ao cadastrar paciente: " + e.getMessage(), 
+            "Erro", 
+            JOptionPane.ERROR_MESSAGE);
+    } catch (InputMismatchException e) {
+        JOptionPane.showMessageDialog(this,
+            "Erro, CPF não pode conter letras: " + e.getMessage(),
+            "Erro",
+            JOptionPane.ERROR_MESSAGE);
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(this, 
+            "Erro inesperado ao cadastrar paciente: " + e.getMessage(), 
+            "Erro", 
+            JOptionPane.ERROR_MESSAGE);
     }
+}
 	
 }

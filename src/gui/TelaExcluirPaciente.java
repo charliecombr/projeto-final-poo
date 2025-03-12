@@ -131,7 +131,7 @@ public class TelaExcluirPaciente extends JDialog {
             JOptionPane.YES_NO_OPTION);
         if (escolha == JOptionPane.YES_OPTION) {
             try {
-                pacService.excluir(paciente);
+                pacService.deletarPaciente(paciente);
                 JOptionPane.showMessageDialog(this, "Paciente excluído com sucesso!");
                 if (main != null) {
                     main.loadTablePaciente();
